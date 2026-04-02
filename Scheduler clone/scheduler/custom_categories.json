@@ -1,0 +1,8 @@
+{
+  "faculty_requests": {
+    "id": "faculty_requests",
+    "label": "Faculty requests",
+    "color": "#d30909",
+    "builtin": false
+  }
+}

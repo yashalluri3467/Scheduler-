@@ -1,0 +1,2512 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+    <title>CalendarScheduler</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap" rel="stylesheet" />
+    <style>
+        *, *::before, *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0
+        }
+
+        :root {
+            --bg: #0a0b0f;
+            --s1: #13151c;
+            --s2: #1a1d27;
+            --s3: #20232e;
+            --bd: rgba(255,255,255,.06);
+            --bd2: rgba(255,255,255,.11);
+            --tx: #dde1f0;
+            --mu: #6b6f83;
+            --ac: #4f8ef7;
+            --ac2: #9b79f5;
+            --lo: #3ec98a;
+            --mi: #4f8ef7;
+            --hi: #f5974f;
+            --cr: #f26060;
+            --team: #f0b429;
+            --sw: 234px;
+            --r: 10px;
+            --r2: 7px;
+        }
+
+        body {
+            font-family: 'DM Sans',sans-serif;
+            background: var(--bg);
+            color: var(--tx);
+            min-height: 100vh;
+            display: flex;
+            overflow: hidden
+        }
+
+        button {
+            cursor: pointer;
+            font-family: inherit
+        }
+
+        a {
+            color: inherit;
+            text-decoration: none
+        }
+
+        /* ── Sidebar ──────────────────────────────────────────────────────── */
+        .sidebar {
+            width: var(--sw);
+            min-height: 100vh;
+            background: var(--s1);
+            border-right: 1px solid var(--bd);
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            z-index: 20
+        }
+
+        .logo {
+            padding: 22px 20px 18px;
+            border-bottom: 1px solid var(--bd)
+        }
+
+        .logo-mark {
+            width: 32px;
+            height: 32px;
+            border-radius: 9px;
+            background: linear-gradient(135deg,var(--ac),var(--ac2));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            margin-bottom: 10px
+        }
+
+        .logo h1 {
+            font-family: 'Syne',sans-serif;
+            font-size: 15px;
+            font-weight: 600;
+            line-height: 1.25
+        }
+
+        .logo p {
+            font-size: 11px;
+            color: var(--mu);
+            margin-top: 2px;
+            font-weight: 300
+        }
+
+        .nav {
+            flex: 1;
+            padding: 10px 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 1px;
+            overflow-y: auto
+        }
+
+        .nav-sec {
+            font-size: 9.5px;
+            font-weight: 700;
+            letter-spacing: .1em;
+            text-transform: uppercase;
+            color: var(--mu);
+            padding: 10px 12px 3px;
+            opacity: .5
+        }
+
+        .ni {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            padding: 8px 12px;
+            border-radius: var(--r2);
+            font-size: 13px;
+            color: var(--mu);
+            cursor: pointer;
+            transition: all .13s;
+            border: 1px solid transparent;
+            user-select: none
+        }
+
+            .ni .ico {
+                font-size: 13px;
+                width: 15px;
+                text-align: center;
+                flex-shrink: 0
+            }
+
+            .ni:hover {
+                background: var(--s2);
+                color: var(--tx)
+            }
+
+            .ni.active {
+                background: rgba(79,142,247,.1);
+                color: var(--ac);
+                border-color: rgba(79,142,247,.18);
+                font-weight: 500
+            }
+
+            .ni.team-nav.active {
+                background: rgba(240,180,41,.1);
+                color: var(--team);
+                border-color: rgba(240,180,41,.2)
+            }
+
+        .sf {
+            padding: 12px 18px 14px;
+            border-top: 1px solid var(--bd);
+            font-size: 11px;
+            color: var(--mu);
+            display: flex;
+            align-items: center;
+            gap: 8px
+        }
+
+        .dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--lo);
+            animation: pulse 2.5s ease-in-out infinite;
+            flex-shrink: 0
+        }
+
+        @keyframes pulse {
+            0%,100% {
+                opacity: 1;
+                transform: scale(1)
+            }
+
+            50% {
+                opacity: .5;
+                transform: scale(.85)
+            }
+        }
+
+        /* ── Main ─────────────────────────────────────────────────────────── */
+        .main {
+            margin-left: var(--sw);
+            flex: 1;
+            height: 100vh;
+            overflow-y: auto;
+            padding: 32px 36px 60px
+        }
+
+        .page {
+            display: none;
+            animation: fade .17s ease
+        }
+
+            .page.active {
+                display: block
+            }
+
+        @keyframes fade {
+            from {
+                opacity: 0;
+                transform: translateY(4px)
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0)
+            }
+        }
+
+        /* ── Page header ──────────────────────────────────────────────────── */
+        .ph {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            margin-bottom: 26px;
+            gap: 16px;
+            flex-wrap: wrap
+        }
+
+        .ph-title {
+            font-family: 'Syne',sans-serif;
+            font-size: 24px;
+            font-weight: 600;
+            letter-spacing: -.01em;
+            line-height: 1.1
+        }
+
+        .ph-sub {
+            font-size: 12.5px;
+            color: var(--mu);
+            margin-top: 4px;
+            font-weight: 300
+        }
+
+        .ph-r {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-shrink: 0;
+            flex-wrap: wrap
+        }
+
+        /* ── Buttons ──────────────────────────────────────────────────────── */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            padding: 8px 16px;
+            border-radius: var(--r2);
+            font-family: 'DM Sans',sans-serif;
+            font-size: 13px;
+            font-weight: 500;
+            border: none;
+            transition: all .13s;
+            white-space: nowrap
+        }
+
+        .btn-p {
+            background: var(--ac);
+            color: #fff
+        }
+
+            .btn-p:hover {
+                background: #3d7de8;
+                transform: translateY(-1px);
+                box-shadow: 0 4px 16px rgba(79,142,247,.26)
+            }
+
+        .btn-g {
+            background: transparent;
+            border: 1px solid var(--bd2);
+            color: var(--tx)
+        }
+
+            .btn-g:hover {
+                background: var(--s2)
+            }
+
+        .btn-team {
+            background: rgba(240,180,41,.15);
+            border: 1px solid rgba(240,180,41,.25);
+            color: var(--team)
+        }
+
+            .btn-team:hover {
+                background: rgba(240,180,41,.25)
+            }
+
+        .btn-danger {
+            background: rgba(242,96,96,.1);
+            border: 1px solid rgba(242,96,96,.2);
+            color: var(--cr)
+        }
+
+            .btn-danger:hover {
+                background: rgba(242,96,96,.2)
+            }
+
+        .btn-smart {
+            background: rgba(155,121,245,.15);
+            border: 1px solid rgba(155,121,245,.25);
+            color: var(--ac2)
+        }
+
+            .btn-smart:hover {
+                background: rgba(155,121,245,.25)
+            }
+
+        .btn-sm {
+            padding: 5px 11px;
+            font-size: 11.5px
+        }
+
+        .btn:disabled {
+            opacity: .35;
+            pointer-events: none
+        }
+
+        /* ── Stat cards ───────────────────────────────────────────────────── */
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(4,1fr);
+            gap: 12px;
+            margin-bottom: 24px
+        }
+
+        .stat {
+            background: var(--s1);
+            border: 1px solid var(--bd);
+            border-radius: var(--r);
+            padding: 16px 18px
+        }
+
+        .stat-lbl {
+            font-size: 10px;
+            color: var(--mu);
+            text-transform: uppercase;
+            letter-spacing: .08em;
+            font-weight: 600
+        }
+
+        .stat-val {
+            font-family: 'Syne',sans-serif;
+            font-size: 26px;
+            font-weight: 600;
+            margin-top: 5px;
+            line-height: 1
+        }
+
+        .stat-hint {
+            font-size: 11px;
+            color: var(--mu);
+            margin-top: 4px
+        }
+
+        /* ── Badges ───────────────────────────────────────────────────────── */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 3px 8px;
+            border-radius: 20px;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: .05em;
+            text-transform: uppercase
+        }
+
+            .badge::before {
+                content: '';
+                width: 5px;
+                height: 5px;
+                border-radius: 50%;
+                background: currentColor;
+                flex-shrink: 0
+            }
+
+        .badge-LOW {
+            background: rgba(62,201,138,.1);
+            color: var(--lo)
+        }
+
+        .badge-MEDIUM {
+            background: rgba(79,142,247,.1);
+            color: var(--mi)
+        }
+
+        .badge-HIGH {
+            background: rgba(245,151,79,.1);
+            color: var(--hi)
+        }
+
+        .badge-CRITICAL {
+            background: rgba(242,96,96,.1);
+            color: var(--cr)
+        }
+
+        .badge-personal {
+            background: rgba(79,142,247,.1);
+            color: var(--ac)
+        }
+
+        .badge-work {
+            background: rgba(155,121,245,.1);
+            color: var(--ac2)
+        }
+
+        .badge-other {
+            background: rgba(107,111,131,.1);
+            color: var(--mu)
+        }
+
+        /* ── Score bar ────────────────────────────────────────────────────── */
+        .sbar {
+            display: flex;
+            align-items: center;
+            gap: 7px
+        }
+
+        .sbar-t {
+            height: 4px;
+            width: 56px;
+            background: var(--s2);
+            border-radius: 2px;
+            overflow: hidden;
+            flex-shrink: 0
+        }
+
+        .sbar-f {
+            height: 100%;
+            border-radius: 2px;
+            transition: width .4s ease
+        }
+
+        .sbar-n {
+            font-size: 11px;
+            color: var(--mu);
+            min-width: 22px
+        }
+
+        /* ── Event rows ───────────────────────────────────────────────────── */
+        .el {
+            display: flex;
+            flex-direction: column;
+            gap: 6px
+        }
+
+        .er {
+            display: grid;
+            grid-template-columns: 10px 1fr auto auto auto;
+            gap: 12px;
+            align-items: center;
+            background: var(--s1);
+            border: 1px solid var(--bd);
+            border-radius: var(--r2);
+            padding: 12px 14px;
+            transition: border-color .13s,background .13s
+        }
+
+            .er:hover {
+                border-color: var(--bd2);
+                background: var(--s2)
+            }
+
+        .tdot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            flex-shrink: 0
+        }
+
+        .t-personal {
+            background: var(--ac)
+        }
+
+        .t-work {
+            background: var(--ac2)
+        }
+
+        .t-other {
+            background: var(--mu)
+        }
+
+        .en {
+            font-size: 13.5px;
+            font-weight: 500
+        }
+
+        .em {
+            font-size: 11.5px;
+            color: var(--mu);
+            margin-top: 2px
+        }
+
+        .et {
+            font-size: 11.5px;
+            color: var(--mu);
+            text-align: right;
+            white-space: nowrap
+        }
+
+        .ed {
+            font-size: 11px;
+            color: var(--mu);
+            margin-top: 1px;
+            text-align: right
+        }
+
+        .del-btn {
+            opacity: 0;
+            transition: opacity .13s;
+            cursor: pointer;
+            background: none;
+            border: none;
+            color: var(--cr);
+            font-size: 15px;
+            padding: 2px 4px;
+            border-radius: 4px
+        }
+
+        .er:hover .del-btn {
+            opacity: 1
+        }
+
+        .del-btn:hover {
+            background: rgba(242,96,96,.12)
+        }
+
+        /* ── Day report ───────────────────────────────────────────────────── */
+        .dl {
+            display: flex;
+            flex-direction: column;
+            gap: 7px
+        }
+
+        .dc {
+            background: var(--s1);
+            border: 1px solid var(--bd);
+            border-radius: var(--r);
+            overflow: hidden;
+            cursor: pointer;
+            transition: border-color .13s
+        }
+
+            .dc:hover {
+                border-color: var(--bd2)
+            }
+
+        .dh {
+            display: grid;
+            grid-template-columns: 175px 55px 60px 108px 1fr;
+            gap: 11px;
+            align-items: center;
+            padding: 12px 17px
+        }
+
+        .dn {
+            font-size: 13.5px;
+            font-weight: 500
+        }
+
+        .db {
+            display: none;
+            padding: 0 13px 12px;
+            border-top: 1px solid var(--bd)
+        }
+
+            .db.open {
+                display: block
+            }
+
+            .db .er {
+                margin-top: 7px
+            }
+
+        .lbar-w {
+            display: flex;
+            align-items: center;
+            gap: 7px
+        }
+
+        .lbar {
+            flex: 1;
+            height: 5px;
+            background: var(--s2);
+            border-radius: 3px;
+            overflow: hidden
+        }
+
+        .lbar-f {
+            height: 100%;
+            border-radius: 3px;
+            transition: width .4s
+        }
+
+        .lbar-p {
+            font-size: 11px;
+            color: var(--mu);
+            width: 38px;
+            text-align: right;
+            white-space: nowrap
+        }
+
+        /* ── Availability ─────────────────────────────────────────────────── */
+        .al {
+            display: flex;
+            flex-direction: column;
+            gap: 6px
+        }
+
+        .ar {
+            display: grid;
+            grid-template-columns: 118px 1fr auto;
+            gap: 14px;
+            align-items: center;
+            background: var(--s1);
+            border: 1px solid var(--bd);
+            border-radius: var(--r2);
+            padding: 12px 16px;
+            transition: opacity .2s
+        }
+
+            .ar.off {
+                opacity: .38
+            }
+
+        .ad {
+            font-size: 13.5px;
+            font-weight: 500
+        }
+
+        .at-row {
+            display: flex;
+            align-items: center;
+            gap: 8px
+        }
+
+        .t-sep {
+            font-size: 12px;
+            color: var(--mu)
+        }
+
+        .ti {
+            background: var(--s2);
+            border: 1px solid var(--bd);
+            border-radius: 6px;
+            color: var(--tx);
+            font-family: 'DM Sans',sans-serif;
+            font-size: 12.5px;
+            padding: 6px 9px;
+            width: 80px;
+            text-align: center;
+            transition: border-color .13s
+        }
+
+            .ti:focus {
+                outline: none;
+                border-color: var(--ac)
+            }
+
+            .ti:disabled {
+                opacity: .3;
+                cursor: not-allowed
+            }
+
+        .tgl {
+            position: relative;
+            width: 36px;
+            height: 20px;
+            cursor: pointer;
+            flex-shrink: 0
+        }
+
+            .tgl input {
+                opacity: 0;
+                width: 0;
+                height: 0;
+                position: absolute
+            }
+
+        .tgl-t {
+            position: absolute;
+            inset: 0;
+            background: var(--s2);
+            border-radius: 10px;
+            border: 1px solid var(--bd2);
+            transition: background .17s,border-color .17s
+        }
+
+        .tgl input:checked + .tgl-t {
+            background: var(--ac);
+            border-color: var(--ac)
+        }
+
+        .tgl-th {
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            width: 12px;
+            height: 12px;
+            background: #fff;
+            border-radius: 50%;
+            transition: transform .17s;
+            pointer-events: none
+        }
+
+        .tgl input:checked ~ .tgl-th {
+            transform: translateX(16px)
+        }
+
+        /* ── Slots ────────────────────────────────────────────────────────── */
+        .slots-bar {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 18px;
+            flex-wrap: wrap
+        }
+
+        .di {
+            background: var(--s1);
+            border: 1px solid var(--bd);
+            border-radius: var(--r2);
+            color: var(--tx);
+            font-family: 'Syne',sans-serif;
+            font-size: 14px;
+            font-weight: 600;
+            padding: 7px 12px;
+            width: 84px;
+            text-align: center
+        }
+
+            .di:focus {
+                outline: none;
+                border-color: var(--ac)
+            }
+
+        .sl {
+            display: flex;
+            flex-direction: column;
+            gap: 6px
+        }
+
+        .sr {
+            display: grid;
+            grid-template-columns: 1fr 62px 150px auto;
+            gap: 12px;
+            align-items: center;
+            background: var(--s1);
+            border: 1px solid var(--bd);
+            border-radius: var(--r2);
+            padding: 11px 15px;
+            cursor: pointer;
+            transition: all .13s
+        }
+
+            .sr:hover {
+                border-color: var(--ac);
+                background: rgba(79,142,247,.04)
+            }
+
+            .sr.selected {
+                border-color: var(--ac);
+                background: rgba(79,142,247,.08)
+            }
+
+        .st {
+            font-size: 13.5px;
+            font-weight: 500
+        }
+
+        .sd {
+            font-size: 12px;
+            color: var(--mu)
+        }
+
+        /* ── Forms ────────────────────────────────────────────────────────── */
+        .form-card {
+            background: var(--s1);
+            border: 1px solid var(--bd);
+            border-radius: var(--r);
+            padding: 24px 26px;
+            max-width: 700px
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px
+        }
+
+        .fg {
+            display: flex;
+            flex-direction: column;
+            gap: 5px
+        }
+
+        .fl {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--mu);
+            letter-spacing: .04em;
+            text-transform: uppercase
+        }
+
+        .fi {
+            background: var(--s2);
+            border: 1px solid var(--bd);
+            border-radius: var(--r2);
+            color: var(--tx);
+            font-family: 'DM Sans',sans-serif;
+            font-size: 13.5px;
+            padding: 9px 12px;
+            width: 100%;
+            transition: border-color .13s
+        }
+
+            .fi:focus {
+                outline: none;
+                border-color: var(--ac)
+            }
+
+        select.fi {
+            cursor: pointer
+        }
+
+        textarea.fi {
+            resize: vertical;
+            min-height: 80px;
+            font-size: 13px;
+            line-height: 1.5
+        }
+
+        .form-sep {
+            grid-column: 1/-1;
+            height: 1px;
+            background: var(--bd);
+            margin: 4px 0
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 18px;
+            flex-wrap: wrap
+        }
+
+        /* ── Email chip input ─────────────────────────────────────────────── */
+        .chip-box {
+            background: var(--s2);
+            border: 1px solid var(--bd);
+            border-radius: var(--r2);
+            padding: 8px 10px;
+            min-height: 80px;
+            cursor: text;
+            transition: border-color .13s
+        }
+
+            .chip-box:focus-within {
+                border-color: var(--ac)
+            }
+
+        .chip-wrap {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            align-items: flex-start
+        }
+
+        .chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            background: rgba(79,142,247,.15);
+            border: 1px solid rgba(79,142,247,.25);
+            border-radius: 20px;
+            padding: 3px 10px;
+            font-size: 12px;
+            color: var(--ac);
+            max-width: 220px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap
+        }
+
+        .chip-x {
+            cursor: pointer;
+            font-size: 14px;
+            line-height: 1;
+            flex-shrink: 0;
+            opacity: .7
+        }
+
+            .chip-x:hover {
+                opacity: 1
+            }
+
+        .chip-input {
+            background: transparent;
+            border: none;
+            outline: none;
+            color: var(--tx);
+            font-family: 'DM Sans',sans-serif;
+            font-size: 13px;
+            padding: 3px 4px;
+            min-width: 180px;
+            flex: 1
+        }
+
+        .chip-count {
+            font-size: 11px;
+            color: var(--mu);
+            margin-top: 6px
+        }
+
+        .bulk-hint {
+            font-size: 11.5px;
+            color: var(--mu);
+            margin-top: 5px;
+            line-height: 1.5
+        }
+
+        /* ── Smart Scheduler ──────────────────────────────────────────────── */
+        .smart-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 8px
+        }
+
+        .smart-card {
+            background: var(--s1);
+            border: 1px solid var(--bd);
+            border-radius: var(--r);
+            padding: 16px 18px;
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 12px;
+            align-items: center;
+            transition: border-color .13s
+        }
+
+            .smart-card:hover {
+                border-color: var(--bd2)
+            }
+
+            .smart-card.top {
+                border-color: rgba(155,121,245,.3);
+                background: rgba(155,121,245,.04)
+            }
+
+        .smart-rank {
+            font-family: 'Syne',sans-serif;
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--mu);
+            text-transform: uppercase;
+            letter-spacing: .06em;
+            margin-bottom: 4px
+        }
+
+        .smart-time {
+            font-size: 14px;
+            font-weight: 500
+        }
+
+        .smart-reason {
+            font-size: 12px;
+            color: var(--mu);
+            margin-top: 3px
+        }
+
+        .smart-score-wrap {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 6px
+        }
+
+        .smart-score {
+            font-family: 'Syne',sans-serif;
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--ac2)
+        }
+
+        .smart-score-lbl {
+            font-size: 10px;
+            color: var(--mu);
+            text-transform: uppercase;
+            letter-spacing: .05em
+        }
+
+        .smart-bar {
+            height: 5px;
+            width: 80px;
+            background: var(--s2);
+            border-radius: 3px;
+            overflow: hidden;
+            margin-top: 4px
+        }
+
+        .smart-bar-f {
+            height: 100%;
+            border-radius: 3px;
+            background: var(--ac2);
+            transition: width .4s
+        }
+
+        .smart-controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap
+        }
+
+        /* ── Intensity checker ────────────────────────────────────────────── */
+        .int-layout {
+            display: grid;
+            grid-template-columns: 1fr 300px;
+            gap: 18px;
+            align-items: start
+        }
+
+        .int-result {
+            background: var(--s1);
+            border: 1px solid var(--bd);
+            border-radius: var(--r);
+            padding: 20px;
+            position: sticky;
+            top: 0
+        }
+
+        .int-score-ring {
+            width: 96px;
+            height: 96px;
+            border-radius: 50%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 14px;
+            border: 3px solid var(--bd2);
+            transition: border-color .3s
+        }
+
+        .int-score-big {
+            font-family: 'Syne',sans-serif;
+            font-size: 28px;
+            font-weight: 700;
+            line-height: 1
+        }
+
+        .int-score-lbl {
+            font-size: 10px;
+            color: var(--mu);
+            text-transform: uppercase;
+            letter-spacing: .06em;
+            margin-top: 2px
+        }
+
+        .int-badge-wrap {
+            text-align: center;
+            margin-bottom: 16px
+        }
+
+        .factor-list {
+            display: flex;
+            flex-direction: column;
+            gap: 7px;
+            margin-top: 14px
+        }
+
+        .factor-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            font-size: 12.5px
+        }
+
+        .factor-lbl {
+            color: var(--mu);
+            flex: 1
+        }
+
+        .factor-detail {
+            font-size: 11px;
+            color: var(--mu);
+            flex: 1;
+            text-align: center;
+            font-style: italic
+        }
+
+        .factor-pts {
+            font-family: 'Syne',sans-serif;
+            font-weight: 600;
+            min-width: 34px;
+            text-align: right
+        }
+
+            .factor-pts.pos {
+                color: var(--cr)
+            }
+
+            .factor-pts.neg {
+                color: var(--lo)
+            }
+
+            .factor-pts.zero {
+                color: var(--mu)
+            }
+
+        .kw-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            margin-top: 10px
+        }
+
+        .kw-chip {
+            padding: 3px 8px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600
+        }
+
+        .kw-crit {
+            background: rgba(242,96,96,.12);
+            color: var(--cr)
+        }
+
+        .kw-high {
+            background: rgba(245,151,79,.12);
+            color: var(--hi)
+        }
+
+        .kw-low {
+            background: rgba(62,201,138,.12);
+            color: var(--lo)
+        }
+
+        /* ── Modal ────────────────────────────────────────────────────────── */
+        .backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,.65);
+            backdrop-filter: blur(6px);
+            z-index: 100;
+            display: none;
+            align-items: center;
+            justify-content: center
+        }
+
+            .backdrop.open {
+                display: flex
+            }
+
+        .modal {
+            background: var(--s1);
+            border: 1px solid var(--bd2);
+            border-radius: var(--r);
+            padding: 26px 24px;
+            width: 460px;
+            max-width: 94vw;
+            max-height: 90vh;
+            overflow-y: auto;
+            animation: min-in .18s ease
+        }
+
+        .modal-wide {
+            width: 600px
+        }
+
+        @keyframes min-in {
+            from {
+                transform: translateY(14px);
+                opacity: 0
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1
+            }
+        }
+
+        .modal-title {
+            font-family: 'Syne',sans-serif;
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 3px
+        }
+
+        .modal-sub {
+            font-size: 12px;
+            color: var(--mu);
+            margin-bottom: 14px
+        }
+
+        .slot-prev {
+            background: rgba(79,142,247,.1);
+            border: 1px solid rgba(79,142,247,.18);
+            border-radius: var(--r2);
+            padding: 9px 12px;
+            font-size: 12.5px;
+            color: var(--ac);
+            margin-bottom: 18px
+        }
+
+        .modal-foot {
+            display: flex;
+            gap: 10px;
+            margin-top: 18px
+        }
+
+            .modal-foot .btn {
+                flex: 1;
+                justify-content: center
+            }
+
+        /* ── Toast ────────────────────────────────────────────────────────── */
+        .toasts {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 200;
+            display: flex;
+            flex-direction: column;
+            gap: 7px
+        }
+
+        .toast {
+            background: var(--s2);
+            border: 1px solid var(--bd2);
+            border-radius: var(--r2);
+            padding: 10px 15px;
+            font-size: 12.5px;
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            min-width: 230px;
+            animation: tin .18s ease
+        }
+
+            .toast.ok {
+                border-left: 3px solid var(--lo)
+            }
+
+            .toast.err {
+                border-left: 3px solid var(--cr)
+            }
+
+            .toast.info {
+                border-left: 3px solid var(--ac)
+            }
+
+        @keyframes tin {
+            from {
+                transform: translateX(12px);
+                opacity: 0
+            }
+
+            to {
+                transform: translateX(0);
+                opacity: 1
+            }
+        }
+
+        /* ── Loading / empty ──────────────────────────────────────────────── */
+        .ld {
+            display: none;
+            align-items: center;
+            justify-content: center;
+            gap: 11px;
+            padding: 42px 20px;
+            color: var(--mu);
+            font-size: 13.5px
+        }
+
+            .ld.on {
+                display: flex
+            }
+
+        .spin {
+            width: 16px;
+            height: 16px;
+            border: 2px solid var(--bd);
+            border-top-color: var(--ac);
+            border-radius: 50%;
+            animation: spin .6s linear infinite;
+            flex-shrink: 0
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg)
+            }
+        }
+
+        .empty {
+            text-align: center;
+            padding: 48px 20px;
+            color: var(--mu)
+        }
+
+        .empty-ico {
+            font-size: 30px;
+            margin-bottom: 9px;
+            opacity: .4
+        }
+
+        .empty h3 {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--tx);
+            margin-bottom: 4px
+        }
+
+        .empty p {
+            font-size: 12.5px
+        }
+
+        .fsel {
+            background: var(--s1);
+            border: 1px solid var(--bd);
+            border-radius: var(--r2);
+            color: var(--tx);
+            font-family: 'DM Sans',sans-serif;
+            font-size: 12.5px;
+            padding: 6px 11px;
+            min-width: 125px
+        }
+
+            .fsel:focus {
+                outline: none;
+                border-color: var(--ac)
+            }
+
+        .success-banner {
+            background: rgba(62,201,138,.1);
+            border: 1px solid rgba(62,201,138,.2);
+            border-radius: var(--r2);
+            padding: 12px 16px;
+            display: none;
+            align-items: center;
+            gap: 11px;
+            margin-bottom: 18px;
+            font-size: 13px;
+            color: var(--lo)
+        }
+
+            .success-banner.show {
+                display: flex
+            }
+
+        .section-title {
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: .08em;
+            text-transform: uppercase;
+            color: var(--mu);
+            margin-bottom: 10px
+        }
+
+        ::-webkit-scrollbar {
+            width: 5px
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--s2);
+            border-radius: 3px
+        }
+
+        /* ── Category management ──────────────────────────────────────────── */
+        .cat-add-row {
+            display: grid;
+            grid-template-columns: 1fr 52px auto;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 20px;
+            background: var(--s1);
+            border: 1px solid var(--bd);
+            border-radius: var(--r);
+            padding: 16px 18px;
+        }
+
+        .color-swatch {
+            width: 38px;
+            height: 38px;
+            border-radius: var(--r2);
+            border: 1px solid var(--bd2);
+            cursor: pointer;
+            padding: 0;
+            background: none;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ═══ SIDEBAR ═══════════════════════════════════════════════════════ -->
+    <aside class="sidebar">
+        <div class="logo">
+            <div class="logo-mark">📅</div>
+            <h1>Calendar<br>Scheduler</h1>
+            <p>Intensity-aware</p>
+        </div>
+        <nav class="nav">
+            <div class="nav-sec">Overview</div>
+            <div class="ni active" data-page="dashboard" onclick="go('dashboard')"><span class="ico">◈</span>Dashboard</div>
+            <div class="ni" data-page="events" onclick="go('events')"><span class="ico">◷</span>All Events</div>
+            <div class="ni" data-page="dayreport" onclick="go('dayreport')"><span class="ico">▦</span>Day Report</div>
+            <div class="nav-sec">Scheduling</div>
+            <div class="ni" data-page="availability" onclick="go('availability')"><span class="ico">◻</span>Availability</div>
+            <div class="ni" data-page="slots" onclick="go('slots')"><span class="ico">⊕</span>Free Slots</div>
+            <div class="ni btn-smart" data-page="smart" onclick="go('smart')"><span class="ico">✦</span>Smart Schedule</div>
+            <div class="nav-sec">Events</div>
+            <div class="ni" data-page="create" onclick="go('create')"><span class="ico">＋</span>Create Event</div>
+            <div class="ni team-nav" data-page="team" onclick="go('team')"><span class="ico">👥</span>Team Launch</div>
+            <div class="nav-sec">Tools</div>
+            <div class="ni" data-page="intensity" onclick="go('intensity')"><span class="ico">◎</span>Intensity Check</div>
+            <div class="ni" data-page="categories" onclick="go('categories')"><span class="ico">🏷</span>Categories</div>
+        </nav>
+        <div class="sf"><div class="dot"></div>Google Calendar</div>
+    </aside>
+
+    <!-- ═══ MAIN ══════════════════════════════════════════════════════════ -->
+    <main class="main">
+
+        <!-- ── Dashboard ─────────────────────────────────────────────────── -->
+        <section id="page-dashboard" class="page active">
+            <div class="ph">
+                <div><div class="ph-title">Dashboard</div><div class="ph-sub">Your upcoming schedule at a glance</div></div>
+                <div class="ph-r">
+                    <select class="fsel" id="dash-cat" onchange="fetchEvents()">
+                        <option value="">All categories</option>
+                        <option value="personal">Personal</option>
+                        <option value="work">Work</option>
+                        <option value="other">Other</option>
+                    </select>
+                    <button class="btn btn-p" onclick="fetchEvents()">↻ &nbsp;Sync</button>
+                </div>
+            </div>
+            <div class="stats">
+                <div class="stat"><div class="stat-lbl">Total Events</div><div class="stat-val" id="s-total">—</div><div class="stat-hint">loaded</div></div>
+                <div class="stat"><div class="stat-lbl">Work Events</div><div class="stat-val" id="s-work">—</div><div class="stat-hint">calendar: work</div></div>
+                <div class="stat"><div class="stat-lbl">High Intensity</div><div class="stat-val" id="s-high" style="color:var(--cr)">—</div><div class="stat-hint">critical + high</div></div>
+                <div class="stat"><div class="stat-lbl">Busiest Day</div><div class="stat-val" id="s-busy" style="font-size:16px;padding-top:7px">—</div><div class="stat-hint" id="s-busy-lbl">—</div></div>
+            </div>
+            <div class="ld on" id="dash-ld"><div class="spin"></div>Connecting to Google Calendar…</div>
+            <div id="dash-empty" class="empty" style="display:none"><div class="empty-ico">📭</div><h3>No events</h3><p>Click <strong>Sync</strong> to load from Google.</p></div>
+            <div id="dash-content" style="display:none">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+                    <span class="section-title">Next 7 Days</span>
+                    <button class="btn btn-g btn-sm" onclick="go('events')">View all →</button>
+                </div>
+                <div class="el" id="dash-el"></div>
+            </div>
+        </section>
+
+        <!-- ── All Events ─────────────────────────────────────────────────── -->
+        <section id="page-events" class="page">
+            <div class="ph">
+                <div><div class="ph-title">All Events</div><div class="ph-sub">Full calendar with intensity scores and category filter</div></div>
+                <div class="ph-r">
+                    <select class="fsel" id="f-type" onchange="renderEvts()">
+                        <option value="">All categories</option>
+                        <option value="personal">Personal</option>
+                        <option value="work">Work</option>
+                        <option value="other">Other</option>
+                    </select>
+                    <select class="fsel" id="f-int" onchange="renderEvts()">
+                        <option value="">All intensities</option>
+                        <option value="LOW">Low</option>
+                        <option value="MEDIUM">Medium</option>
+                        <option value="HIGH">High</option>
+                        <option value="CRITICAL">Critical</option>
+                    </select>
+                </div>
+            </div>
+            <div class="ld" id="evts-ld"><div class="spin"></div>Loading…</div>
+            <div class="el" id="evts-el"></div>
+            <div id="evts-empty" class="empty" style="display:none"><div class="empty-ico">🗓</div><h3>No matching events</h3><p>Adjust filter or sync.</p></div>
+        </section>
+
+        <!-- ── Day Report ─────────────────────────────────────────────────── -->
+        <section id="page-dayreport" class="page">
+            <div class="ph">
+                <div><div class="ph-title">Day Report</div><div class="ph-sub">Intensity load by day — click any row to expand its events</div></div>
+                <div class="ph-r">
+                    <button class="btn btn-g btn-sm" onclick="loadDayReport()">↻ Refresh</button>
+                    <button class="btn btn-p" onclick="syncThenDayReport()">↻ &nbsp;Sync &amp; Load</button>
+                </div>
+            </div>
+            <div class="ld" id="dr-ld"><div class="spin"></div>Loading day report…</div>
+            <div class="dl" id="day-list"></div>
+            <div id="dr-empty" class="empty" style="display:none">
+                <div class="empty-ico">📊</div>
+                <h3>No day data</h3>
+                <p>Click <strong>Sync &amp; Load</strong> to fetch your calendar events first.</p>
+            </div>
+        </section>
+
+        <!-- ── Availability ───────────────────────────────────────────────── -->
+        <section id="page-availability" class="page">
+            <div class="ph">
+                <div><div class="ph-title">Availability</div><div class="ph-sub">Set working hours per day of week</div></div>
+                <div class="ph-r"><button class="btn btn-p" onclick="saveAvail()">Save Changes</button></div>
+            </div>
+            <div class="al" id="avail-list"></div>
+        </section>
+
+        <!-- ── Free Slots ─────────────────────────────────────────────────── -->
+        <section id="page-slots" class="page">
+            <div class="ph"><div><div class="ph-title">Free Slots</div><div class="ph-sub">Available times ranked least-busy first</div></div></div>
+            <div class="slots-bar">
+                <span style="font-size:13px;color:var(--mu)">Duration (min)</span>
+                <input type="number" id="dur-in" class="di" value="30" min="15" step="15" />
+                <button class="btn btn-p" onclick="fetchSlots()">Find Slots</button>
+            </div>
+            <div class="ld" id="slots-ld"><div class="spin"></div>Searching…</div>
+            <div class="sl" id="slot-list"></div>
+            <div id="slots-empty" class="empty" style="display:none"><div class="empty-ico">🕐</div><h3>No free slots</h3><p>Try shorter duration or adjust availability.</p></div>
+        </section>
+
+        <!-- ── Smart Schedule ─────────────────────────────────────────────── -->
+        <section id="page-smart" class="page">
+            <div class="ph">
+                <div><div class="ph-title">Smart Schedule</div><div class="ph-sub">AI-ranked best slots based on intensity, time of day, and day quality</div></div>
+            </div>
+            <div class="smart-controls">
+                <span style="font-size:13px;color:var(--mu)">Duration (min)</span>
+                <input type="number" id="smart-dur" class="di" value="60" min="15" step="15" />
+                <select class="fsel" id="smart-cat">
+                    <option value="">Any category</option>
+                    <option value="work">Work</option>
+                    <option value="personal">Personal</option>
+                </select>
+                <select class="fsel" id="smart-prefer">
+                    <option value="low_intensity">Prefer quiet days</option>
+                    <option value="any">Any day</option>
+                </select>
+                <button class="btn btn-smart" onclick="fetchSmart()">✦ &nbsp;Find Best Slots</button>
+            </div>
+            <div class="ld" id="smart-ld"><div class="spin"></div>Analysing calendar…</div>
+            <div class="smart-grid" id="smart-grid"></div>
+            <div id="smart-empty" class="empty" style="display:none"><div class="empty-ico">🔭</div><h3>No recommendations</h3><p>Sync your calendar and try again.</p></div>
+        </section>
+
+        <!-- ── Create Event ───────────────────────────────────────────────── -->
+        <section id="page-create" class="page">
+            <div class="ph"><div><div class="ph-title">Create Event</div><div class="ph-sub">Schedule a meeting and send an invite</div></div></div>
+            <div id="create-banner" class="success-banner"><span style="font-size:17px">✓</span><span id="create-banner-msg"></span></div>
+            <div class="form-card">
+                <div class="form-grid">
+                    <div class="fg" style="grid-column:1/-1">
+                        <label class="fl">Event Title *</label>
+                        <input id="ce-title" class="fi" type="text" placeholder="e.g. Q3 Strategy Review" />
+                    </div>
+                    <div class="fg">
+                        <label class="fl">Attendee Name *</label>
+                        <input id="ce-name" class="fi" type="text" placeholder="Jane Smith" />
+                    </div>
+                    <div class="fg">
+                        <label class="fl">Attendee Email *</label>
+                        <input id="ce-email" class="fi" type="email" placeholder="jane@example.com" />
+                    </div>
+                    <div class="fg">
+                        <label class="fl">Start Date &amp; Time *</label>
+                        <input id="ce-start" class="fi" type="datetime-local" />
+                    </div>
+                    <div class="fg">
+                        <label class="fl">End Date &amp; Time *</label>
+                        <input id="ce-end" class="fi" type="datetime-local" />
+                    </div>
+                    <div class="fg">
+                        <label class="fl">Category</label>
+                        <select id="ce-caltype" class="fi">
+                            <option value="personal">Personal</option>
+                            <option value="work" selected>Work</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                    <div class="fg">
+                        <label class="fl">Duration (auto)</label>
+                        <input id="ce-dur" class="fi" type="text" readonly style="opacity:.55;cursor:not-allowed" placeholder="Calculated from times" />
+                    </div>
+                    <div class="form-sep"></div>
+                    <div class="fg" style="grid-column:1/-1">
+                        <label class="fl">Description / Agenda</label>
+                        <input id="ce-desc" class="fi" type="text" placeholder="Brief agenda or notes…" />
+                    </div>
+                </div>
+                <div id="ce-int-preview" style="margin-top:18px;display:none">
+                    <div class="section-title">Predicted Intensity</div>
+                    <div style="display:flex;align-items:center;gap:13px">
+                        <span id="ce-int-badge" class="badge badge-MEDIUM">MEDIUM</span>
+                        <div class="sbar">
+                            <div class="sbar-t" style="width:110px"><div id="ce-int-bar" class="sbar-f" style="width:50%;background:var(--mi)"></div></div>
+                            <span class="sbar-n" id="ce-int-score">—/100</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <button class="btn btn-p" id="ce-submit" onclick="submitCreateEvent()">＋ &nbsp;Create &amp; Send Invite</button>
+                    <button class="btn btn-g" onclick="resetCreateForm()">Clear</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- ── Team Launch ────────────────────────────────────────────────── -->
+        <section id="page-team" class="page">
+            <div class="ph">
+                <div>
+                    <div class="ph-title">Team Launch</div>
+                    <div class="ph-sub">Create an event for up to 50 members — enter emails one by one or paste a bulk list</div>
+                </div>
+                <div class="ph-r">
+                    <span id="team-member-count" style="font-size:13px;color:var(--mu)">0 members</span>
+                </div>
+            </div>
+            <div id="team-banner" class="success-banner"><span style="font-size:17px">✓</span><span id="team-banner-msg"></span></div>
+
+            <div style="display:grid;grid-template-columns:1fr 320px;gap:18px;align-items:start">
+                <!-- Left: form -->
+                <div class="form-card" style="max-width:none">
+                    <div class="form-grid">
+                        <div class="fg" style="grid-column:1/-1">
+                            <label class="fl">Event Title *</label>
+                            <input id="te-title" class="fi" type="text" placeholder="e.g. Q3 All-Hands Meeting" />
+                        </div>
+                        <div class="fg">
+                            <label class="fl">Start Date &amp; Time *</label>
+                            <input id="te-start" class="fi" type="datetime-local" />
+                        </div>
+                        <div class="fg">
+                            <label class="fl">End Date &amp; Time *</label>
+                            <input id="te-end" class="fi" type="datetime-local" />
+                        </div>
+                        <div class="fg">
+                            <label class="fl">Category</label>
+                            <select id="te-cat" class="fi">
+                                <option value="work" selected>Work</option>
+                                <option value="personal">Personal</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                        <div class="fg">
+                            <label class="fl">Organizer Name</label>
+                            <input id="te-organizer" class="fi" type="text" placeholder="Your name" />
+                        </div>
+                        <div class="fg" style="grid-column:1/-1">
+                            <label class="fl">Description / Agenda</label>
+                            <textarea id="te-desc" class="fi" placeholder="Meeting agenda, goals, prep notes…"></textarea>
+                        </div>
+                        <div class="form-sep"></div>
+
+                        <!-- Email chips area -->
+                        <div class="fg" style="grid-column:1/-1">
+                            <label class="fl">Team Members (enter email + press Enter or comma)</label>
+                            <div class="chip-box" id="chip-box" onclick="focusChipInput()">
+                                <div class="chip-wrap" id="chip-wrap">
+                                    <input id="chip-input" class="chip-input" type="text"
+                                           placeholder="name@company.com"
+                                           onkeydown="chipKeydown(event)"
+                                           onpaste="chipPaste(event)"
+                                           oninput="chipInput(event)" />
+                                </div>
+                            </div>
+                            <div class="chip-count" id="chip-count">0 / 50 members added</div>
+                            <div class="bulk-hint">
+                                💡 Paste a comma-separated list or one email per line — all will be added at once.<br>
+                                You can also type each email and press <kbd style="background:var(--s2);border:1px solid var(--bd2);padding:1px 5px;border-radius:4px;font-size:10px">Enter</kbd> or <kbd style="background:var(--s2);border:1px solid var(--bd2);padding:1px 5px;border-radius:4px;font-size:10px">,</kbd>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button class="btn btn-team" id="te-submit" onclick="submitTeamEvent()">👥 &nbsp;Launch Team Event</button>
+                        <button class="btn btn-g" onclick="clearTeamForm()">Clear All</button>
+                    </div>
+                </div>
+
+                <!-- Right: member list preview -->
+                <div style="background:var(--s1);border:1px solid var(--bd);border-radius:var(--r);padding:18px;position:sticky;top:0">
+                    <div class="section-title">Member List Preview</div>
+                    <div id="member-preview" style="display:flex;flex-direction:column;gap:5px;max-height:420px;overflow-y:auto;margin-top:10px">
+                        <div style="font-size:12.5px;color:var(--mu);text-align:center;padding:20px 0">No members added yet</div>
+                    </div>
+                    <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--bd)">
+                        <div style="font-size:11px;color:var(--mu);margin-bottom:6px">Max 50 · Google limit</div>
+                        <div id="member-bar-wrap" class="lbar-w">
+                            <div class="lbar"><div class="lbar-f" id="member-bar" style="width:0%;background:var(--ac)"></div></div>
+                            <span class="lbar-p" id="member-bar-pct">0/50</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ── Intensity Checker ───────────────────────────────────────────── -->
+        <section id="page-intensity" class="page">
+            <div class="ph"><div><div class="ph-title">Intensity Checker</div><div class="ph-sub">Score any event before scheduling</div></div></div>
+            <div class="int-layout">
+                <div class="form-card">
+                    <div class="form-grid">
+                        <div class="fg" style="grid-column:1/-1">
+                            <label class="fl">Event Title</label>
+                            <input id="ic-title" class="fi" type="text" placeholder="e.g. Board deadline presentation" oninput="liveIntensity()" />
+                        </div>
+                        <div class="fg" style="grid-column:1/-1">
+                            <label class="fl">Description</label>
+                            <input id="ic-desc" class="fi" type="text" placeholder="Optional context…" oninput="liveIntensity()" />
+                        </div>
+                        <div class="fg">
+                            <label class="fl">Duration (min)</label>
+                            <input id="ic-dur" class="fi" type="number" value="60" min="5" oninput="liveIntensity()" />
+                        </div>
+                        <div class="fg">
+                            <label class="fl">Attendees</label>
+                            <input id="ic-att" class="fi" type="number" value="2" min="0" oninput="liveIntensity()" />
+                        </div>
+                        <div class="fg">
+                            <label class="fl">Category</label>
+                            <select id="ic-cal" class="fi" onchange="liveIntensity()">
+                                <option value="work">Work</option>
+                                <option value="personal">Personal</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                        <div class="fg">
+                            <label class="fl">Start Hour (0–23)</label>
+                            <input id="ic-hour" class="fi" type="number" value="9" min="0" max="23" oninput="liveIntensity()" />
+                        </div>
+                    </div>
+                    <div style="margin-top:18px">
+                        <button class="btn btn-p" onclick="checkIntensity()">◎ &nbsp;Check Intensity</button>
+                    </div>
+                </div>
+                <div class="int-result" id="int-result">
+                    <div class="int-score-ring" id="int-ring">
+                        <div class="int-score-big" id="int-score-big">—</div>
+                        <div class="int-score-lbl">/ 100</div>
+                    </div>
+                    <div class="int-badge-wrap"><span class="badge badge-MEDIUM" id="int-badge">PENDING</span></div>
+                    <div class="section-title">Factor Breakdown</div>
+                    <div class="factor-list" id="int-factors">
+                        <div style="font-size:12.5px;color:var(--mu);text-align:center;padding:8px 0">Enter event details to see breakdown</div>
+                    </div>
+                    <div id="int-kw-wrap" style="display:none">
+                        <div class="section-title" style="margin-top:13px">Matched Keywords</div>
+                        <div class="kw-chips" id="int-kw-chips"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- ── Categories ─────────────────────────────────────────────── -->
+        <section id="page-categories" class="page">
+            <div class="ph">
+                <div><div class="ph-title">Categories</div><div class="ph-sub">Manage your custom workload categories for events</div></div>
+            </div>
+
+            <!-- Add new category -->
+            <div class="cat-add-row">
+                <div class="fg">
+                    <label class="fl">Category Name</label>
+                    <input id="cat-label" class="fi" type="text" placeholder="e.g. Deep Work, Research, Client…" onkeydown="if(event.key==='Enter') addCategory()" />
+                </div>
+                <div class="fg">
+                    <label class="fl">Colour</label>
+                    <input id="cat-color" type="color" class="color-swatch" value="#4f8ef7" />
+                </div>
+                <div style="padding-top:18px">
+                    <button class="btn btn-p" onclick="addCategory()">＋ Add</button>
+                </div>
+            </div>
+
+            <!-- List -->
+            <div class="el" id="cat-list">
+                <div class="empty" style="padding:32px"><div class="empty-ico">🏷</div><h3>No categories yet</h3><p>Add one above.</p></div>
+            </div>
+
+            <div style="margin-top:20px;background:var(--s1);border:1px solid var(--bd);border-radius:var(--r);padding:16px 18px">
+                <div class="section-title" style="margin-bottom:10px">How categories work</div>
+                <div style="font-size:13px;color:var(--mu);line-height:1.7">
+                    Categories let you tag events beyond the default Personal / Work / Other labels.<br>
+                    When creating or launching an event, choose your custom category from the dropdown.<br>
+                    The category colour shows as a dot on every event row and in the day report.<br>
+                    Built-in categories (Personal, Work, Other) cannot be deleted.
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- ═══ BOOKING MODAL ════════════════════════════════════════════════ -->
+    <div class="backdrop" id="modal-wrap">
+        <div class="modal">
+            <div class="modal-title">Book a Meeting</div>
+            <div class="modal-sub">An invite will be sent automatically.</div>
+            <div class="slot-prev" id="modal-prev">— select a slot first —</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:11px">
+                <div class="fg"><label class="fl">Your Name</label><input id="b-name" class="fi" type="text" placeholder="Jane Smith" /></div>
+                <div class="fg"><label class="fl">Your Email</label><input id="b-email" class="fi" type="email" placeholder="jane@email.com" /></div>
+            </div>
+            <div class="fg" style="margin-top:11px"><label class="fl">Event Title</label><input id="b-title" class="fi" type="text" placeholder="e.g. Strategy Meeting" /></div>
+            <div class="fg" style="margin-top:11px"><label class="fl">Description</label><input id="b-desc" class="fi" type="text" placeholder="Brief agenda…" /></div>
+            <div class="modal-foot">
+                <button class="btn btn-g" onclick="closeModal()">Cancel</button>
+                <button class="btn btn-p" id="b-confirm" onclick="confirmBook()">✓ &nbsp;Confirm &amp; Send Invite</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══ DELETE CONFIRM MODAL ═════════════════════════════════════════ -->
+    <div class="backdrop" id="del-modal">
+        <div class="modal" style="width:360px">
+            <div class="modal-title">Delete Event?</div>
+            <div class="modal-sub">This will remove the event from Google Calendar and notify attendees of cancellation.</div>
+            <div style="background:rgba(242,96,96,.07);border:1px solid rgba(242,96,96,.15);border-radius:var(--r2);padding:10px 13px;font-size:13px;color:var(--cr);margin-top:4px" id="del-evt-name"></div>
+            <div class="modal-foot">
+                <button class="btn btn-g" onclick="closeDelModal()">Cancel</button>
+                <button class="btn btn-danger" id="del-confirm-btn" onclick="confirmDelete()">Delete Event</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="toasts" id="toasts"></div>
+
+    <!-- ═══ SCRIPT ════════════════════════════════════════════════════════ -->
+    <script>
+        /* ── State ──────────────────────────────────────────────────────── */
+        let ALL = [];
+        let AVAIL = [];
+        let SLOTS = [];
+        let CATS = [];           // all categories (built-in + custom)
+        let CHIPS = [];          // team emails
+        let SMART_SLOTS = [];
+        let picked = null;
+        let pendingDelId = null;
+        let pendingDelName = '';
+
+        /* ── Router ─────────────────────────────────────────────────────── */
+        function go(name) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.ni').forEach(n => n.classList.remove('active'));
+            document.getElementById('page-' + name).classList.add('active');
+            document.querySelector(`[data-page="${name}"]`).classList.add('active');
+            if (name === 'dayreport') loadDayReport();
+            if (name === 'availability') loadAvail();
+            if (name === 'create') initCreateForm();
+            if (name === 'intensity') checkIntensity();
+            if (name === 'categories') _renderCategoryPage();
+            if (name === 'smart') { };   // user presses button to search
+            if (name === 'team') initTeamForm();
+        }
+
+        /* ══════════════════════════════════════════════════════════════════
+           EVENTS
+        ══════════════════════════════════════════════════════════════════ */
+        async function fetchEvents() {
+            const cat = qs('#dash-cat').value;
+            on('dash-ld'); hide('dash-content'); hide('dash-empty');
+            on('evts-ld');
+            try {
+                const url = (cat && cat !== '') ? `/api/events?category=${cat}` : '/api/events';
+                const d = await api(url);
+                ALL = d.events;
+                renderDash();
+                renderEvts();
+                toast('Loaded ' + ALL.length + ' events', 'ok');
+            } catch (e) {
+                off('dash-ld'); show('dash-empty');
+                toast(e.message, 'err');
+            } finally { off('evts-ld'); }
+        }
+
+        function renderDash() {
+            off('dash-ld');
+            if (!ALL.length) { show('dash-empty'); return; }
+            const work = ALL.filter(e => e.calendar_type === 'work').length;
+            const high = ALL.filter(e => e.intensity === 'HIGH' || e.intensity === 'CRITICAL').length;
+            const byDay = {};
+            ALL.forEach(e => { const k = e.start.slice(0, 10); byDay[k] = (byDay[k] || 0) + e.intensity_score; });
+            const top = Object.entries(byDay).sort((a, b) => b[1] - a[1])[0];
+            const topLbl = top ? new Date(top[0]).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' }) : '—';
+            qs('#s-total').textContent = ALL.length;
+            qs('#s-work').textContent = work;
+            qs('#s-high').textContent = high;
+            qs('#s-busy').textContent = topLbl;
+            qs('#s-busy-lbl').textContent = top ? 'load ' + Math.min(100, top[1]) + '/100' : '—';
+            const cut = new Date(); cut.setDate(cut.getDate() + 7);
+            const soon = ALL.filter(e => new Date(e.start) <= cut).slice(0, 8);
+            qs('#dash-el').innerHTML = soon.map(evtHTML).join('');
+            show('dash-content');
+        }
+
+        function renderEvts() {
+            const tf = qs('#f-type').value;
+            const af = qs('#f-int').value;
+            let list = ALL;
+            if (tf) list = list.filter(e => e.calendar_type === tf);
+            if (af) list = list.filter(e => e.intensity === af);
+            const el = qs('#evts-el');
+            if (!list.length) { el.innerHTML = ''; show('evts-empty'); return; }
+            hide('evts-empty');
+            el.innerHTML = list.map(evtHTML).join('');
+        }
+
+        function evtHTML(e) {
+            const fill = sColor(e.intensity_score);
+            const catColor = e.category_color || '#6b6f83';
+            const catLabel = e.category_label || e.calendar_type;
+            const att = e.attendees.length
+                ? `<span style="margin-left:6px">👥 ${e.attendees.slice(0, 2).join(', ')}${e.attendees.length > 2 ? ' +' + (e.attendees.length - 2) : ''}</span>` : '';
+            return `
+<div class="er">
+          <div class="tdot" style="background:${catColor}"></div>
+          <div>
+            <div class="en">${esc(e.title)}</div>
+            <div class="em">
+              <span style="display:inline-flex;align-items:center;gap:4px;font-size:9.5px;font-weight:700;padding:2px 7px;border-radius:20px;background:${catColor}22;color:${catColor};letter-spacing:.04em;text-transform:uppercase">${esc(catLabel)}</span>
+              ${e.location ? ' · ' + esc(e.location) : ''}${att}
+            </div>
+          </div>
+          <div>
+            <div class="et">${e.is_all_day ? '<em>All day</em>' : e.start_label + ' → ' + e.end_label}</div>
+            <div class="ed">${e.is_all_day ? '' : e.duration_min + 'min'}</div>
+          </div>
+          <div>
+            <span class="badge badge-${e.intensity}">${e.intensity}</span>
+            <div class="sbar" style="margin-top:5px">
+              <div class="sbar-t"><div class="sbar-f" style="width:${e.intensity_score}%;background:${fill}"></div></div>
+              <span class="sbar-n">${e.intensity_score}</span>
+            </div>
+          </div>
+          <button class="del-btn" onclick="askDelete('${e.uid}','${esc(e.title).replace(/'/g, "\\'")}')">✕</button>
+</div>`;
+        }
+
+        /* ══════════════════════════════════════════════════════════════════
+           DELETE
+        ══════════════════════════════════════════════════════════════════ */
+        function askDelete(uid, title) {
+            pendingDelId = uid;
+            pendingDelName = title;
+            qs('#del-evt-name').textContent = title;
+            qs('#del-modal').classList.add('open');
+        }
+        function closeDelModal() { qs('#del-modal').classList.remove('open'); pendingDelId = null; }
+
+        async function confirmDelete() {
+            if (!pendingDelId) return;
+            const btn = qs('#del-confirm-btn');
+            btn.disabled = true; btn.textContent = 'Deleting…';
+            try {
+                await api(`/api/delete/${pendingDelId}`, 'DELETE');
+                ALL = ALL.filter(e => e.uid !== pendingDelId);
+                renderEvts();
+                renderDash();
+                toast('Event deleted', 'ok');
+                closeDelModal();
+            } catch (e) {
+                toast('Delete failed: ' + e.message, 'err');
+            } finally {
+                btn.disabled = false; btn.textContent = 'Delete Event';
+            }
+        }
+
+        /* ══════════════════════════════════════════════════════════════════
+           DAY REPORT
+        ══════════════════════════════════════════════════════════════════ */
+        async function syncThenDayReport() {
+            // Fetch fresh events from Google then render the day report
+            on('dr-ld'); hide('dr-empty'); hide('dash-content');
+            qs('#day-list').innerHTML = '';
+            try {
+                const url = '/api/events';
+                const ev = await api(url);
+                ALL = ev.events;
+                renderDash();
+                renderEvts();
+                await _renderDayReport();
+            } catch (e) {
+                toast('Sync failed: ' + e.message, 'err');
+                show('dr-empty');
+            } finally { off('dr-ld'); }
+        }
+
+        async function loadDayReport() {
+            on('dr-ld'); hide('dr-empty');
+            qs('#day-list').innerHTML = '';
+
+            // If no events cached yet, auto-fetch first
+            if (!ALL.length) {
+                try {
+                    const ev = await api('/api/events');
+                    ALL = ev.events;
+                    renderDash();
+                    renderEvts();
+                } catch (e) {
+                    off('dr-ld');
+                    show('dr-empty');
+                    toast('Could not load events: ' + e.message, 'err');
+                    return;
+                }
+            }
+
+            await _renderDayReport();
+            off('dr-ld');
+        }
+
+        async function _renderDayReport() {
+            try {
+                const d = await api('/api/day_report');
+                if (!d.days || !d.days.length) {
+                    show('dr-empty');
+                    return;
+                }
+                qs('#day-list').innerHTML = d.days.map(day => {
+                    const col = iColor(day.intensity);
+                    const pct = day.intensity_score;
+                    return `
+<div class="dc" onclick="toggleDay('${day.date}')">
+      <div class="dh">
+        <div class="dn">${day.day_label}</div>
+        <div style="font-size:12.5px;color:var(--mu);text-align:center">${day.event_count} evt</div>
+        <div style="font-size:12.5px;color:var(--mu);text-align:center">${day.total_hours}h</div>
+        <span class="badge badge-${day.intensity}">${day.intensity}</span>
+        <div class="lbar-w">
+          <div class="lbar"><div class="lbar-f" style="width:${pct}%;background:${col}"></div></div>
+          <span class="lbar-p">${pct}/100</span>
+        </div>
+      </div>
+      <div class="db" id="db-${day.date}">
+        ${day.events.map(evtHTML).join('')}
+      </div>
+</div>`;
+                }).join('');
+            } catch (e) {
+                // If backend says "no events loaded", show helpful empty state
+                if (e.message && e.message.includes('sync')) {
+                    show('dr-empty');
+                } else {
+                    toast('Day report error: ' + e.message, 'err');
+                    show('dr-empty');
+                }
+            }
+        }
+
+        function toggleDay(dateKey) {
+            const el = qs('#db-' + dateKey);
+            if (el) el.classList.toggle('open');
+        }
+
+        /* ══════════════════════════════════════════════════════════════════
+           AVAILABILITY
+        ══════════════════════════════════════════════════════════════════ */
+        async function loadAvail() {
+            const d = await api('/api/availability');
+            AVAIL = d.windows;
+            qs('#avail-list').innerHTML = AVAIL.map(w => `
+<div class="ar${w.is_available ? '' : ' off'}" id="ar-${w.day}">
+          <div class="ad">${w.day_name}</div>
+          <div class="at-row">
+            <input class="ti" type="time" id="ts-${w.day}" value="${w.start_time}" ${w.is_available ? '' : 'disabled'}/>
+            <span class="t-sep">→</span>
+            <input class="ti" type="time" id="te-${w.day}" value="${w.end_time}" ${w.is_available ? '' : 'disabled'}/>
+          </div>
+          <label class="tgl">
+            <input type="checkbox" id="tg-${w.day}" ${w.is_available ? 'checked' : ''} onchange="toggleAvailDay(${w.day})"/>
+            <div class="tgl-t"></div><div class="tgl-th"></div>
+          </label>
+</div>`).join('');
+        }
+        function toggleAvailDay(day) {
+            const on_ = qs('#tg-' + day).checked;
+            qs('#ar-' + day).classList.toggle('off', !on_);
+            qs('#ts-' + day).disabled = !on_; qs('#te-' + day).disabled = !on_;
+        }
+        async function saveAvail() {
+            for (const w of AVAIL) {
+                await api('/api/availability', 'POST', {
+                    day: w.day,
+                    start_time: qs('#ts-' + w.day).value || '08:00',
+                    end_time: qs('#te-' + w.day).value || '17:30',
+                    is_available: qs('#tg-' + w.day).checked,
+                });
+            }
+            toast('Availability saved', 'ok');
+        }
+
+        /* ══════════════════════════════════════════════════════════════════
+           FREE SLOTS
+        ══════════════════════════════════════════════════════════════════ */
+        async function fetchSlots() {
+            const dur = qs('#dur-in').value || 30;
+            on('slots-ld'); hide('slots-empty'); qs('#slot-list').innerHTML = ''; picked = null;
+            try {
+                const d = await api(`/api/slots?duration=${dur}`);
+                SLOTS = d.slots; renderSlots();
+            } catch (e) { toast(e.message, 'err'); }
+            finally { off('slots-ld'); }
+        }
+        function renderSlots() {
+            if (!SLOTS.length) { show('slots-empty'); return; }
+            qs('#slot-list').innerHTML = SLOTS.map((s, i) => {
+                const col = lColor(s.day_load);
+                return `
+<div class="sr" id="sr-${i}" onclick="pickSlot(${i})">
+          <div class="st">${s.start_label} → ${s.end_label}</div>
+          <div class="sd">${s.duration}min</div>
+          <div class="lbar-w">
+            <div class="lbar"><div class="lbar-f" style="width:${s.day_load}%;background:${col}"></div></div>
+            <span class="lbar-p">${s.day_load}/100</span>
+          </div>
+          <button class="btn btn-g btn-sm" onclick="event.stopPropagation();openModal(${i})">Book →</button>
+</div>`;
+            }).join('');
+        }
+        function pickSlot(i) { document.querySelectorAll('.sr').forEach(r => r.classList.remove('selected')); qs('#sr-' + i).classList.add('selected'); picked = SLOTS[i]; }
+
+        /* ══════════════════════════════════════════════════════════════════
+           SMART SCHEDULE
+        ══════════════════════════════════════════════════════════════════ */
+        async function fetchSmart() {
+            const dur = qs('#smart-dur').value || 60;
+            const cat = qs('#smart-cat').value;
+            const prefer = qs('#smart-prefer').value;
+            on('smart-ld'); hide('smart-empty'); qs('#smart-grid').innerHTML = '';
+            try {
+                let url = `/api/smart_schedule?duration=${dur}&prefer=${prefer}`;
+                if (cat) url += `&category=${cat}`;
+                const d = await api(url);
+                SMART_SLOTS = d.slots;
+                if (!d.slots.length) { off('smart-ld'); show('smart-empty'); return; }
+                qs('#smart-grid').innerHTML = d.slots.map((s, i) => {
+                    const isTop = i === 0;
+                    return `
+<div class="smart-card${isTop ? ' top' : ''}">
+          <div>
+            <div class="smart-rank">${isTop ? '⭑ Best match' : '#' + (i + 1)}</div>
+            <div class="smart-time">${s.start_label} → ${s.end_label} <span style="font-size:12px;color:var(--mu)">(${s.duration}min)</span></div>
+            <div class="smart-reason">${s.reason} · day load ${s.day_load}/100</div>
+          </div>
+          <div class="smart-score-wrap">
+            <div class="smart-score">${s.fit_score}</div>
+            <div class="smart-score-lbl">fit score</div>
+            <div class="smart-bar"><div class="smart-bar-f" style="width:${s.fit_score}%"></div></div>
+            <button class="btn btn-smart btn-sm" style="margin-top:8px" onclick="bookSmartSlot(${i})">Book →</button>
+          </div>
+</div>`;
+                }).join('');
+            } catch (e) { toast(e.message, 'err'); }
+            finally { off('smart-ld'); }
+        }
+
+        function bookSmartSlot(i) {
+            const s = SMART_SLOTS[i];
+            if (!s) return;
+            picked = s;
+            qs('#modal-prev').textContent = `📅  ${s.start_label} → ${s.end_label}  (${s.duration}min)`;
+            qs('#modal-wrap').classList.add('open');
+        }
+
+        /* ══════════════════════════════════════════════════════════════════
+           BOOKING MODAL
+        ══════════════════════════════════════════════════════════════════ */
+        function openModal(i) { picked = SLOTS[i]; const dur = qs('#dur-in').value || 30; qs('#modal-prev').textContent = `📅  ${picked.start_label} → ${picked.end_label}  (${dur} min)`; qs('#modal-wrap').classList.add('open'); }
+        function closeModal() { qs('#modal-wrap').classList.remove('open'); }
+
+        async function confirmBook() {
+            const name = qs('#b-name').value.trim(), email = qs('#b-email').value.trim();
+            const title = qs('#b-title').value.trim() || 'Meeting', desc = qs('#b-desc').value.trim();
+            const dur = parseInt(qs('#dur-in').value || '30');
+            if (!name || !email) { toast('Name and email required', 'err'); return; }
+            if (!picked) { toast('No slot selected', 'err'); return; }
+            const start = new Date(picked.start), end = new Date(start.getTime() + dur * 60000);
+            const btn = qs('#b-confirm'); btn.disabled = true; btn.textContent = 'Booking…';
+            try {
+                await api('/api/book', 'POST', {
+                    name, email, title, description: desc, duration: dur,
+                    start: start.toISOString().replace('Z', ''), end: end.toISOString().replace('Z', '')
+                });
+                toast('Event booked! Invite sent to ' + email, 'ok');
+                closeModal();
+                ['b-name', 'b-email', 'b-title', 'b-desc'].forEach(id => qs('#' + id).value = '');
+            } catch (e) { toast('Failed: ' + e.message, 'err'); }
+            finally { btn.disabled = false; btn.innerHTML = '✓ &nbsp;Confirm &amp; Send Invite'; }
+        }
+
+        /* ══════════════════════════════════════════════════════════════════
+           CREATE EVENT
+        ══════════════════════════════════════════════════════════════════ */
+        function initCreateForm() {
+            const s = qs('#ce-start'), e = qs('#ce-end');
+            if (!s.value) { const now = new Date(); now.setMinutes(0, 0, 0); now.setHours(now.getHours() + 1); s.value = toLocal(now); e.value = toLocal(new Date(now.getTime() + 3600000)); calcDuration(); }
+        }
+        qs('#ce-start').addEventListener('change', () => { calcDuration(); liveCreateIntensity(); });
+        qs('#ce-end').addEventListener('change', () => { calcDuration(); liveCreateIntensity(); });
+        qs('#ce-title').addEventListener('input', liveCreateIntensity);
+        qs('#ce-desc').addEventListener('input', liveCreateIntensity);
+        qs('#ce-caltype').addEventListener('change', liveCreateIntensity);
+
+        function calcDuration() {
+            const s = qs('#ce-start').value, e = qs('#ce-end').value;
+            if (s && e) { const d = (new Date(e) - new Date(s)) / 60000; qs('#ce-dur').value = d > 0 ? d + ' min' : 'Invalid'; }
+        }
+        async function liveCreateIntensity() {
+            const title = qs('#ce-title').value.trim(), desc = qs('#ce-desc').value.trim(), cal = qs('#ce-caltype').value;
+            if (!title && !desc) { hide('ce-int-preview'); return; }
+            const dur = qs('#ce-start').value && qs('#ce-end').value ? Math.max(0, (new Date(qs('#ce-end').value) - new Date(qs('#ce-start').value)) / 60000) : 60;
+            const hour = qs('#ce-start').value ? new Date(qs('#ce-start').value).getHours() : 9;
+            try {
+                const d = await api('/api/intensity', 'POST', { title, description: desc, duration_min: dur, attendee_count: 0, calendar_type: cal, start_hour: hour });
+                qs('#ce-int-preview').style.display = '';
+                qs('#ce-int-badge').className = 'badge badge-' + d.intensity; qs('#ce-int-badge').textContent = d.intensity;
+                qs('#ce-int-bar').style.width = d.score + '%'; qs('#ce-int-bar').style.background = sColor(d.score);
+                qs('#ce-int-score').textContent = d.score + '/100';
+            } catch (_) { }
+        }
+        async function submitCreateEvent() {
+            const title = qs('#ce-title').value.trim(), name = qs('#ce-name').value.trim(), email = qs('#ce-email').value.trim();
+            const start = qs('#ce-start').value, end = qs('#ce-end').value, desc = qs('#ce-desc').value.trim();
+            if (!title) { toast('Title required', 'err'); return; }
+            if (!name) { toast('Attendee name required', 'err'); return; }
+            if (!email) { toast('Attendee email required', 'err'); return; }
+            if (!start) { toast('Start time required', 'err'); return; }
+            if (!end) { toast('End time required', 'err'); return; }
+            if (new Date(end) <= new Date(start)) { toast('End must be after start', 'err'); return; }
+            const dur = Math.round((new Date(end) - new Date(start)) / 60000);
+            const btn = qs('#ce-submit'); btn.disabled = true; btn.textContent = 'Creating…';
+            try {
+                await api('/api/book', 'POST', {
+                    name, email, title, description: desc, duration: dur,
+                    start: new Date(start).toISOString().replace('Z', ''), end: new Date(end).toISOString().replace('Z', '')
+                });
+                showBanner('create-banner', 'create-banner-msg', `"${title}" created. Invite sent to ${email}.`);
+                toast('Event created!', 'ok');
+                resetCreateForm();
+            } catch (e) { toast('Error: ' + e.message, 'err'); }
+            finally { btn.disabled = false; btn.innerHTML = '＋ &nbsp;Create &amp; Send Invite'; }
+        }
+        function resetCreateForm() { ['ce-title', 'ce-name', 'ce-email', 'ce-start', 'ce-end', 'ce-desc'].forEach(id => qs('#' + id).value = ''); qs('#ce-dur').value = ''; hide('ce-int-preview'); }
+
+        /* ══════════════════════════════════════════════════════════════════
+           TEAM LAUNCH — chip email input
+        ══════════════════════════════════════════════════════════════════ */
+        function initTeamForm() {
+            const s = qs('#te-start'), e = qs('#te-end');
+            if (!s.value) { const now = new Date(); now.setMinutes(0, 0, 0); now.setHours(now.getHours() + 1); s.value = toLocal(now); e.value = toLocal(new Date(now.getTime() + 3600000)); }
+        }
+
+        function focusChipInput() { qs('#chip-input').focus(); }
+
+        function chipKeydown(ev) {
+            if (ev.key === 'Enter' || ev.key === ',' || ev.key === ';' || ev.key === ' ') {
+                ev.preventDefault();
+                const val = qs('#chip-input').value.trim().replace(/,/g, '');
+                if (val) addChip(val);
+                qs('#chip-input').value = '';
+            }
+            if (ev.key === 'Backspace' && !qs('#chip-input').value && CHIPS.length) {
+                removeChip(CHIPS.length - 1);
+            }
+        }
+
+        function chipInput(ev) {
+            // Auto-trigger on comma or semicolon typed inside the value
+            const val = qs('#chip-input').value;
+            if (val.includes(',') || val.includes(';')) {
+                val.split(/[,;]/).forEach(part => { const t = part.trim(); if (t) addChip(t); });
+                qs('#chip-input').value = '';
+            }
+        }
+
+        function chipPaste(ev) {
+            ev.preventDefault();
+            const text = (ev.clipboardData || window.clipboardData).getData('text');
+            // Split on comma, semicolon, newline, space
+            const parts = text.split(/[\s,;\n]+/).map(s => s.trim()).filter(Boolean);
+            parts.forEach(addChip);
+        }
+
+        function addChip(email) {
+            email = email.trim().toLowerCase();
+            if (!email || !email.includes('@') || !email.includes('.')) { toast('Invalid email: ' + email, 'err'); return; }
+            if (CHIPS.includes(email)) { toast('Already added: ' + email, 'info'); return; }
+            if (CHIPS.length >= 50) { toast('Maximum 50 members reached', 'err'); return; }
+            CHIPS.push(email);
+            renderChips();
+            renderMemberPreview();
+        }
+
+        function removeChip(i) {
+            CHIPS.splice(i, 1);
+            renderChips();
+            renderMemberPreview();
+        }
+
+        function renderChips() {
+            const wrap = qs('#chip-wrap');
+            const existing = [...wrap.querySelectorAll('.chip')];
+            existing.forEach(c => c.remove());
+            const input = qs('#chip-input');
+            CHIPS.forEach((email, i) => {
+                const chip = document.createElement('span');
+                chip.className = 'chip';
+                chip.innerHTML = `${esc(email)}<span class="chip-x" onclick="removeChip(${i})">×</span>`;
+                wrap.insertBefore(chip, input);
+            });
+            qs('#chip-count').textContent = `${CHIPS.length} / 50 members added`;
+            qs('#team-member-count').textContent = `${CHIPS.length} member${CHIPS.length !== 1 ? 's' : ''}`;
+            qs('#member-bar').style.width = (CHIPS.length / 50 * 100) + '%';
+            qs('#member-bar-pct').textContent = `${CHIPS.length}/50`;
+        }
+
+        function renderMemberPreview() {
+            const el = qs('#member-preview');
+            if (!CHIPS.length) { el.innerHTML = '<div style="font-size:12.5px;color:var(--mu);text-align:center;padding:20px 0">No members added yet</div>'; return; }
+            el.innerHTML = CHIPS.map((e, i) => `
+<div style="display:flex;align-items:center;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--bd);gap:8px">
+          <span style="font-size:12.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(e)}</span>
+          <button onclick="removeChip(${i})" style="background:none;border:none;color:var(--cr);cursor:pointer;font-size:13px;flex-shrink:0;padding:2px 4px;border-radius:4px" onmouseover="this.style.background='rgba(242,96,96,.1)'" onmouseout="this.style.background='none'">✕</button>
+</div>`).join('');
+        }
+
+        async function submitTeamEvent() {
+            const title = qs('#te-title').value.trim(), start = qs('#te-start').value, end = qs('#te-end').value;
+            const desc = qs('#te-desc').value.trim(), cat = qs('#te-cat').value, org = qs('#te-organizer').value.trim();
+            if (!title) { toast('Event title required', 'err'); return; }
+            if (!start) { toast('Start time required', 'err'); return; }
+            if (!end) { toast('End time required', 'err'); return; }
+            if (new Date(end) <= new Date(start)) { toast('End must be after start', 'err'); return; }
+            if (!CHIPS.length) { toast('Add at least one team member', 'err'); return; }
+            const dur = Math.round((new Date(end) - new Date(start)) / 60000);
+            const btn = qs('#te-submit'); btn.disabled = true; btn.textContent = 'Launching…';
+            try {
+                const d = await api('/api/team_event', 'POST', {
+                    title, description: desc, emails: CHIPS,
+                    start: new Date(start).toISOString().replace('Z', ''),
+                    end: new Date(end).toISOString().replace('Z', ''),
+                    duration: dur, category: cat, organizer_name: org || 'Organizer',
+                });
+                showBanner('team-banner', 'team-banner-msg', `"${title}" launched for ${d.count} members. Invites sent!`);
+                toast(d.message, 'ok');
+                clearTeamForm();
+            } catch (e) { toast('Error: ' + e.message, 'err'); }
+            finally { btn.disabled = false; btn.innerHTML = '👥 &nbsp;Launch Team Event'; }
+        }
+
+        function clearTeamForm() {
+            ['te-title', 'te-start', 'te-end', 'te-desc', 'te-organizer'].forEach(id => qs('#' + id).value = '');
+            CHIPS = [];
+            renderChips(); renderMemberPreview();
+        }
+
+        /* ══════════════════════════════════════════════════════════════════
+           INTENSITY CHECKER
+        ══════════════════════════════════════════════════════════════════ */
+        async function checkIntensity() {
+            try {
+                const d = await api('/api/intensity', 'POST', {
+                    title: qs('#ic-title').value.trim() || '(untitled)',
+                    description: qs('#ic-desc').value.trim(),
+                    duration_min: parseInt(qs('#ic-dur').value || '60'),
+                    attendee_count: parseInt(qs('#ic-att').value || '0'),
+                    calendar_type: qs('#ic-cal').value,
+                    start_hour: parseInt(qs('#ic-hour').value || '9'),
+                });
+                renderIntResult(d);
+            } catch (e) { toast(e.message, 'err'); }
+        }
+        let _icT = null;
+        function liveIntensity() { clearTimeout(_icT); _icT = setTimeout(checkIntensity, 280); }
+
+        function renderIntResult(d) {
+            const col = sColor(d.score);
+            qs('#int-ring').style.borderColor = col;
+            qs('#int-score-big').textContent = d.score; qs('#int-score-big').style.color = col;
+            qs('#int-badge').className = 'badge badge-' + d.intensity; qs('#int-badge').textContent = d.intensity;
+            qs('#int-factors').innerHTML = d.factors.map(f => {
+                const cls = f.points > 0 ? 'pos' : (f.points < 0 ? 'neg' : 'zero'), sign = f.points > 0 ? '+' : '';
+                return `<div class="factor-row"><span class="factor-lbl">${f.label}</span><span class="factor-detail">${f.detail}</span><span class="factor-pts ${cls}">${sign}${f.points}</span></div>`;
+            }).join('');
+            const allKw = [
+                ...d.keywords.critical.map(k => `<span class="kw-chip kw-crit">${k}</span>`),
+                ...d.keywords.high.map(k => `<span class="kw-chip kw-high">${k}</span>`),
+                ...d.keywords.low.map(k => `<span class="kw-chip kw-low">${k}</span>`),
+            ];
+            if (allKw.length) { qs('#int-kw-wrap').style.display = ''; qs('#int-kw-chips').innerHTML = allKw.join(''); }
+            else qs('#int-kw-wrap').style.display = 'none';
+        }
+
+        /* ══════════════════════════════════════════════════════════════════
+           CATEGORIES (custom workload categories)
+        ══════════════════════════════════════════════════════════════════ */
+        async function loadCategories() {
+            const d = await api('/api/categories');
+            CATS = d.categories;
+            _rebuildCategoryDropdowns();
+        }
+
+        function _rebuildCategoryDropdowns() {
+            // Update all category <select> elements in the app
+            const selectors = ['#dash-cat', '#f-type', '#ce-caltype', '#te-cat', '#ic-cal', '#smart-cat'];
+            const opts_all = '<option value="">All categories</option>';
+            const opts_any = '<option value="">Any category</option>';
+            selectors.forEach(sel => {
+                const el = qs(sel);
+                if (!el) return;
+                const isFilter = sel === '#dash-cat' || sel === '#f-type' || sel === '#smart-cat';
+                const cur = el.value;
+                el.innerHTML = (isFilter ? opts_all : '') +
+                    CATS.map(c =>
+                        `<option value="${c.id}" ${cur === c.id ? 'selected' : ''}>${c.label}</option>`
+                    ).join('');
+                if (!isFilter && !el.value) el.value = 'work';
+            });
+            _renderCategoryPage();
+        }
+
+        function _renderCategoryPage() {
+            const list = qs('#cat-list');
+            if (!list) return;
+            list.innerHTML = CATS.map(c => `
+<div class="er" style="grid-template-columns:14px 1fr auto auto">
+      <div style="width:12px;height:12px;border-radius:50%;background:${c.color};flex-shrink:0"></div>
+      <div>
+        <div class="en">${esc(c.label)}</div>
+        <div class="em">${c.builtin ? 'Built-in' : 'Custom'} · id: ${c.id}</div>
+      </div>
+      <span style="font-size:11px;color:var(--mu);padding:3px 8px;background:var(--s2);border-radius:20px">${c.builtin ? 'default' : 'custom'}</span>
+      ${c.builtin ? '' : `<button class="del-btn" style="opacity:1" onclick="deleteCategory('${c.id}')">✕</button>`}
+</div>`).join('');
+        }
+
+        async function addCategory() {
+            const label = qs('#cat-label').value.trim();
+            const color = qs('#cat-color').value;
+            if (!label) { toast('Category name required', 'err'); return; }
+            try {
+                await api('/api/categories', 'POST', { label, color });
+                qs('#cat-label').value = '';
+                await loadCategories();
+                toast(`Category "${label}" added`, 'ok');
+            } catch (e) { toast(e.message, 'err'); }
+        }
+
+        async function deleteCategory(id) {
+            if (!confirm('Delete this category?')) return;
+            try {
+                await api('/api/categories/' + id, 'DELETE');
+                await loadCategories();
+                toast('Category deleted', 'ok');
+            } catch (e) { toast(e.message, 'err'); }
+        }
+
+        /* ══════════════════════════════════════════════════════════════════
+           UTILITIES
+        ══════════════════════════════════════════════════════════════════ */
+        async function api(url, method = 'GET', body = null) {
+            const opts = { method, headers: { 'Content-Type': 'application/json' } };
+            if (body) opts.body = JSON.stringify(body);
+            const r = await fetch(url, opts); const d = await r.json();
+            if (!d.ok) throw new Error(d.error || 'Request failed');
+            return d;
+        }
+        function qs(sel) { return document.querySelector(sel); }
+        function show(id) { const e = document.getElementById(id); if (e) e.style.display = ''; }
+        function hide(id) { const e = document.getElementById(id); if (e) e.style.display = 'none'; }
+        function on(id) { const e = document.getElementById(id); if (e) e.classList.add('on'); }
+        function off(id) { const e = document.getElementById(id); if (e) e.classList.remove('on'); }
+        function esc(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
+        function toast(msg, type = 'info') {
+            const c = document.getElementById('toasts'), el = document.createElement('div');
+            el.className = 'toast ' + type; el.textContent = msg; c.appendChild(el);
+            setTimeout(() => el.remove(), 4500);
+        }
+        function showBanner(bannerId, msgId, msg) {
+            qs('#' + msgId).textContent = msg; const b = qs('#' + bannerId); b.classList.add('show'); setTimeout(() => b.classList.remove('show'), 7000);
+        }
+        function sColor(s) { return s <= 25 ? 'var(--lo)' : s <= 50 ? 'var(--mi)' : s <= 75 ? 'var(--hi)' : 'var(--cr)'; }
+        function lColor(l) { return l <= 30 ? 'var(--lo)' : l <= 60 ? 'var(--mi)' : l <= 80 ? 'var(--hi)' : 'var(--cr)'; }
+        function iColor(i) { return { LOW: 'var(--lo)', MEDIUM: 'var(--mi)', HIGH: 'var(--hi)', CRITICAL: 'var(--cr)' }[i] || 'var(--mi)'; }
+        function toLocal(dt) { const p = n => String(n).padStart(2, '0'); return `${dt.getFullYear()}-${p(dt.getMonth() + 1)}-${p(dt.getDate())}T${p(dt.getHours())}:${p(dt.getMinutes())}`; }
+
+        /* ── Init ─────────────────────────────────────────────────────── */
+        document.addEventListener('DOMContentLoaded', () => {
+            loadAvail().catch(e => console.warn('loadAvail failed silently:', e));
+            loadCategories().catch(e => console.warn('loadCategories:', e)).finally(() => fetchEvents());
+        });
+        qs('#modal-wrap').addEventListener('click', function (e) { if (e.target === this) closeModal(); });
+        qs('#del-modal').addEventListener('click', function (e) { if (e.target === this) closeDelModal(); });
+    </script>
+</body>
+</html>

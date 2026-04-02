@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="0" skipped="0" tests="11" time="0.026" timestamp="2026-03-17T11:49:24.727635+05:30" hostname="LAPTOP-8B9QVOR5"><testcase classname="scheduler.test_scheduler.TestAvailability" name="test_busy_event_removes_slot" file="scheduler\test_scheduler.py" line="90" time="0.001"><system-out>--------------------------------- Captured Log ---------------------------------
+
+--------------------------------- Captured Out ---------------------------------
+
+</system-out><system-err>--------------------------------- Captured Err ---------------------------------
+
+</system-err></testcase><testcase classname="scheduler.test_scheduler.TestAvailability" name="test_partial_busy_leaves_gap" file="scheduler\test_scheduler.py" line="101" time="0.001"><system-out>--------------------------------- Captured Log ---------------------------------
+
+--------------------------------- Captured Out ---------------------------------
+
+</system-out><system-err>--------------------------------- Captured Err ---------------------------------
+
+</system-err></testcase><testcase classname="scheduler.test_scheduler.TestAvailability" name="test_set_window_updates_correctly" file="scheduler\test_scheduler.py" line="112" time="0.000"><system-out>--------------------------------- Captured Log ---------------------------------
+
+--------------------------------- Captured Out ---------------------------------
+
+</system-out><system-err>--------------------------------- Captured Err ---------------------------------
+
+</system-err></testcase><testcase classname="scheduler.test_scheduler.TestAvailability" name="test_weekday_has_slots" file="scheduler\test_scheduler.py" line="85" time="0.000"><system-out>--------------------------------- Captured Log ---------------------------------
+
+--------------------------------- Captured Out ---------------------------------
+
+</system-out><system-err>--------------------------------- Captured Err ---------------------------------
+
+</system-err></testcase><testcase classname="scheduler.test_scheduler.TestAvailability" name="test_weekend_no_slots" file="scheduler\test_scheduler.py" line="79" time="0.000"><system-out>--------------------------------- Captured Log ---------------------------------
+
+--------------------------------- Captured Out ---------------------------------
+
+</system-out><system-err>--------------------------------- Captured Err ---------------------------------
+
+</system-err></testcase><testcase classname="scheduler.test_scheduler.TestIntensityEngine" name="test_critical_keyword_raises_score" file="scheduler\test_scheduler.py" line="27" time="0.000"><system-out>--------------------------------- Captured Log ---------------------------------
+
+--------------------------------- Captured Out ---------------------------------
+
+</system-out><system-err>--------------------------------- Captured Err ---------------------------------
+
+</system-err></testcase><testcase classname="scheduler.test_scheduler.TestIntensityEngine" name="test_dense_day_raises_scores" file="scheduler\test_scheduler.py" line="49" time="0.000"><system-out>--------------------------------- Captured Log ---------------------------------
+
+--------------------------------- Captured Out ---------------------------------
+
+</system-out><system-err>--------------------------------- Captured Err ---------------------------------
+
+</system-err></testcase><testcase classname="scheduler.test_scheduler.TestIntensityEngine" name="test_long_meeting_higher_than_short" file="scheduler\test_scheduler.py" line="43" time="0.000"><system-out>--------------------------------- Captured Log ---------------------------------
+
+--------------------------------- Captured Out ---------------------------------
+
+</system-out><system-err>--------------------------------- Captured Err ---------------------------------
+
+</system-err></testcase><testcase classname="scheduler.test_scheduler.TestIntensityEngine" name="test_low_keyword_lowers_score" file="scheduler\test_scheduler.py" line="33" time="0.000"><system-out>--------------------------------- Captured Log ---------------------------------
+
+--------------------------------- Captured Out ---------------------------------
+
+</system-out><system-err>--------------------------------- Captured Err ---------------------------------
+
+</system-err></testcase><testcase classname="scheduler.test_scheduler.TestIntensityEngine" name="test_many_attendees_raises_score" file="scheduler\test_scheduler.py" line="38" time="0.000"><system-out>--------------------------------- Captured Log ---------------------------------
+
+--------------------------------- Captured Out ---------------------------------
+
+</system-out><system-err>--------------------------------- Captured Err ---------------------------------
+
+</system-err></testcase><testcase classname="scheduler.test_scheduler.TestIntensityEngine" name="test_slot_ranking_least_busy_first" file="scheduler\test_scheduler.py" line="55" time="0.000"><system-out>--------------------------------- Captured Log ---------------------------------
+
+--------------------------------- Captured Out ---------------------------------
+
+</system-out><system-err>--------------------------------- Captured Err ---------------------------------
+
+</system-err></testcase></testsuite></testsuites>

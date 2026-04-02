@@ -1,29 +1,24 @@
 import os
-from google.oauth2.credentials import Credentials
-from google_auth_oauthlib.flow import InstalledAppFlow
-from google.auth.transport.requests import Request
+import json
+from google.oauth2 import service_account
 
 SCOPES = ["https://www.googleapis.com/auth/calendar"]
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-CREDS_FILE = os.path.join(BASE_DIR, "credentials.json")
-TOKEN_FILE = os.path.join(BASE_DIR, "token.json")
+def get_credentials():
+    try:
+        creds_json = os.environ.get("GOOGLE_CREDENTIALS")
 
+        if not creds_json:
+            raise Exception("Missing GOOGLE_CREDENTIALS env variable")
 
-def get_credentials() -> Credentials:
-    creds = None
+        creds_dict = json.loads(creds_json)
 
-    if os.path.exists(TOKEN_FILE):
-        creds = Credentials.from_authorized_user_file(TOKEN_FILE, SCOPES)
+        credentials = service_account.Credentials.from_service_account_info(
+            creds_dict,
+            scopes=SCOPES
+        )
 
-    if not creds or not creds.valid:
-        if creds and creds.expired and creds.refresh_token:
-            creds.refresh(Request())
-        else:
-            flow = InstalledAppFlow.from_client_secrets_file(CREDS_FILE, SCOPES)
-            creds = flow.run_local_server(port=0, prompt="consent")  # 🔥 FIX
+        return credentials
 
-        with open(TOKEN_FILE, "w") as fh:
-            fh.write(creds.to_json())
-
-    return creds
+    except Exception as e:
+        raise Exception(f"Auth Error: {str(e)}")

@@ -1,5 +1,7 @@
 import json
 import os
+import tempfile
+from pathlib import Path
 
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
@@ -52,10 +54,26 @@ def _load_token_creds() -> Credentials | None:
     if token_file and token_file.exists():
         return Credentials.from_authorized_user_file(str(token_file), SCOPES)
 
+    if os.getenv("VERCEL"):
+        return None
+
     if DEFAULT_TOKEN_FILE.exists():
         return Credentials.from_authorized_user_file(str(DEFAULT_TOKEN_FILE), SCOPES)
 
     return None
+
+
+def _token_write_file() -> Path:
+    token_file = resolve_path(
+        get_env("GOOGLE_OAUTH_TOKEN_FILE") or get_env("GOOGLE_TOKEN_FILE")
+    )
+    if token_file is not None:
+        return token_file
+
+    if os.getenv("VERCEL"):
+        return Path(tempfile.gettempdir()) / "token.json"
+
+    return DEFAULT_TOKEN_FILE
 
 
 def get_credentials() -> Credentials:
@@ -79,14 +97,15 @@ def get_credentials() -> Credentials:
                 )
             creds = flow.run_local_server(port=0, prompt="consent")
 
-        token_file = resolve_path(
-            get_env("GOOGLE_OAUTH_TOKEN_FILE") or get_env("GOOGLE_TOKEN_FILE")
-        )
-        if token_file is None:
-            token_file = DEFAULT_TOKEN_FILE
-
+        token_file = _token_write_file()
         token_file.parent.mkdir(parents=True, exist_ok=True)
-        with token_file.open("w", encoding="utf-8") as fh:
-            fh.write(creds.to_json())
+        try:
+            with token_file.open("w", encoding="utf-8") as fh:
+                fh.write(creds.to_json())
+        except OSError as exc:
+            if os.getenv("VERCEL"):
+                print(f"  [auth] skipping token persistence in read-only runtime: {exc}")
+            else:
+                raise
 
     return creds

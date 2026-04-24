@@ -2,8 +2,7 @@
   "ExpandedNodes": [
     "",
     "\\scheduler",
-    "\\scheduler\\templates",
-    "\\scheduler\\__pycache__"
+    "\\scheduler\\templates"
   ],
   "PreviewInSolutionExplorer": false
 }
